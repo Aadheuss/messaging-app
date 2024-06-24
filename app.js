@@ -4,6 +4,9 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
+// Set up environment variables
+require('dotenv').config()
+
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 
