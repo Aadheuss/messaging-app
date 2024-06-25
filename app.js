@@ -7,6 +7,8 @@ const logger = require('morgan');
 // Set up environment variables
 require('dotenv').config()
 
+require('./config/mongoConfig')
+
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 
