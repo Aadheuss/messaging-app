@@ -51,6 +51,9 @@ exports.user_signup_post = [
         await user.save();
         res.json({
           message: "Successfully created the user",
+          user: {
+            username: req.body.username,
+          },
         });
       });
     }
