@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcrypt");
+const passport = require("passport");
 
 const User = require("../models/user");
 
@@ -53,5 +54,70 @@ exports.user_signup = [
         });
       });
     }
+  }),
+];
+
+exports.user_login_get = (req, res, next) => {
+  // Get rid of duplicate messages
+  const messages = Array.from(new Set(req.session.messages));
+
+  if (!req.isAuthenticated()) {
+    const err = new Error("Failed to log in");
+    err.status = 401;
+    err.details = { msg: messages };
+
+    return next(err);
+  }
+
+  res.json({
+    message: "Successfully logged in",
+    user: { _id: req.user._id },
+  });
+};
+
+exports.user_login_post = [
+  (req, res, next) => {
+    if (req.user) {
+      return res.json({
+        message: "You are already logged in",
+        user: {
+          _id: req.user._id,
+        },
+      });
+    }
+
+    next();
+  },
+  // Validate and sanitize fields.
+  body("username", "Please enter your username")
+    .trim()
+    .isLength({ min: 1 })
+    .escape(),
+  body("password", "Please enter your password")
+    .trim()
+    .isLength({ min: 1 })
+    .escape(),
+
+  // Process request after validation and sanitization.
+  asyncHandler(async (req, res, next) => {
+    // Extract the validation errors from a request.
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      const err = new Error("Please enter correct username and password!");
+      err.status = 401;
+      err.details = errors.errors.map((object) => {
+        return { msg: object.msg, path: object.path };
+      });
+
+      next(err);
+    } else {
+      next();
+    }
+  }),
+  passport.authenticate("local", {
+    successRedirect: "login",
+    failureRedirect: "login",
+    failureMessage: true,
   }),
 ];
