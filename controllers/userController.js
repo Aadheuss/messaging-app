@@ -6,7 +6,7 @@ const passport = require("passport");
 const User = require("../models/user");
 
 // Create user
-exports.user_signup = [
+exports.user_signup_post = [
   body("username", "Username must not be empty")
     .trim()
     .isLength({ min: 1 })
