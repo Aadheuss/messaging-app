@@ -7,7 +7,14 @@ const logger = require("morgan");
 // Set up environment variables
 require("dotenv").config();
 
+// Import database configuration
 require("./config/mongoConfig");
+
+//passport-local authentication components
+const passport = require("passport");
+require("./config/passport");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
 
 const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/users");
@@ -23,6 +30,25 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+
+// Set up session
+const sessionStore = MongoStore.create({
+  mongoUrl: process.env.MONGODB_URI,
+  collectionName: "sessions",
+});
+
+app.use(
+  session({
+    secret: process.env.SECRET,
+    resave: false,
+    saveUninitialized: true,
+    store: sessionStore,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24,
+    },
+  })
+);
+app.use(passport.session());
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
