@@ -3,6 +3,7 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
+const cors = require("cors");
 
 // Set up environment variables
 require("dotenv").config();
@@ -49,6 +50,7 @@ app.use(
   })
 );
 app.use(passport.session());
+app.use(cors());
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
