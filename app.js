@@ -50,7 +50,7 @@ app.use(
   })
 );
 app.use(passport.session());
-app.use(cors());
+app.use(cors({ credentials: true, origin: process.env.ORIGIN }));
 
 app.use("/", indexRouter);
 app.use("/", usersRouter);
