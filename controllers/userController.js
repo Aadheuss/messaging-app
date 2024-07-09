@@ -62,7 +62,9 @@ exports.user_signup_post = [
 
 exports.user_login_get = (req, res, next) => {
   // Get rid of duplicate messages
-  const messages = Array.from(new Set(req.session.messages));
+  const messages = req.session.messages;
+  req.session.messages = [];
+  console.log({ session: req.session, headers: req.rawHeaders });
 
   if (!req.isAuthenticated()) {
     const err = new Error("Failed to log in");
