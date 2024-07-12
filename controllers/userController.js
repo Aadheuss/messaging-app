@@ -64,7 +64,6 @@ exports.user_login_get = (req, res, next) => {
   // Get rid of duplicate messages
   const messages = req.session.messages;
   req.session.messages = [];
-  console.log({ session: req.session, headers: req.rawHeaders });
 
   if (!req.isAuthenticated()) {
     const err = new Error("Failed to log in");
@@ -126,3 +125,37 @@ exports.user_login_post = [
     failureMessage: true,
   }),
 ];
+
+exports.user_get = asyncHandler(async (req, res, next) => {
+  if (!req.isAuthenticated()) {
+    const err = new Error("You are not logged in");
+    err.status = 401;
+
+    return next(err);
+  }
+
+  if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+    const err = new Error("the given id is not valid");
+    err.status = 404;
+    return next(err);
+  }
+
+  const user = await User.findOne({ _id: req.params.id }, "username").exec();
+
+  if (user === null) {
+    const err = new Error("user not found");
+    err.status = 404;
+    return next(err);
+  }
+
+  if (req.params.id !== req.session.passport.user) {
+    const err = new Error("You are not authorized to access this data");
+    err.status = 401;
+    return next(err);
+  }
+
+  res.json({
+    message: "Success",
+    data: { user },
+  });
+});
