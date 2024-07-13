@@ -159,3 +159,15 @@ exports.user_get = asyncHandler(async (req, res, next) => {
     data: { user },
   });
 });
+
+exports.user_logout_get = (req, res, next) => {
+  console.log("bro");
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.json({
+      message: "Successfully logged out",
+    });
+  });
+};
