@@ -2,6 +2,8 @@ const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const Message = require("../models/message");
 const User = require("../models/user");
+const Inbox = require("../models/inbox");
+const InboxParticipant = require("../models/inboxParticipant");
 
 exports.message_post = [
   body("message", "Message must not be empty")
@@ -20,6 +22,16 @@ exports.message_post = [
       return next(err);
     }
 
+    if (
+      !req.params.inboxid.match(/^[0-9a-fA-F]{24}$/) &&
+      req.params.inboxid !== "new"
+    ) {
+      const err = new Error("the given inbox id is not valid");
+      err.status = 404;
+      return next(err);
+    }
+
+    console.log({ inboxid: req.params.inboxid });
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -44,15 +56,48 @@ exports.message_post = [
         return next(err);
       }
 
-      const message = new Message({
-        sender: user,
-        receiver: receiver._id,
-        message: req.body.message,
+      const inbox = new Inbox();
+      const inboxParticipant = new InboxParticipant({
+        user,
+        inbox: inbox._id,
       });
+
+      const inboxParticipantTwo = new InboxParticipant({
+        user: receiver._id,
+        inbox: inbox._id,
+      });
+
+      const message = new Message({
+        user: user,
+        message: req.body.message,
+        inbox: req.params.inboxid === "new" ? inbox._id : req.params.inboxid,
+      });
+
+      inbox.last_message = message;
+
+      if (req.params.inboxid === "new") {
+        await inbox.save();
+        await inboxParticipant.save();
+        await inboxParticipantTwo.save();
+      } else {
+        await Inbox.findOneAndUpdate(
+          { _id: req.params.inboxid },
+          { last_message: message },
+          { new: true }
+        ).exec();
+      }
 
       await message.save();
       res.json({
         message: "message successfully sent",
+        data: {
+          message,
+          inbox,
+          inboxParticipants: {
+            sender: inboxParticipant,
+            receiver: inboxParticipantTwo,
+          },
+        },
       });
     }
   }),
