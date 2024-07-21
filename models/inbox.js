@@ -7,4 +7,4 @@ const InboxSchema = new Schema({
   created_at: { type: Date, required: true, default: Date.now },
 });
 
-module.exports = mongoose.model("InboxSchema", InboxSchema);
+module.exports = mongoose.model("Inbox", InboxSchema);
